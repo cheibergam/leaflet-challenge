@@ -1,14 +1,55 @@
-// Creating the map object
-var myMap = L.map("map", {
-  center: [40.7, -73.95],
-  zoom: 11
-});
+const URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
-// Adding the tile layer
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// Function that creates the Map and all the required Tile Layers
+function createMap() {
+
+  // Creating the different Tile Layers (Street Map and Topographic Map)
+  var streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(myMap);
+  });
+  
+  var topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+  });
 
+  // Creating the Map object
+  var myMap = L.map("map", {
+    center: [40.7, -73.95],
+    zoom: 11,
+    layers: [streetMap]
+  });
+
+  // Create a baseMaps object.
+  var baseMaps = {
+    "Street Map": streetMap,
+    "Topographic Map": topoMap
+  };
+
+  // Adding the Layer Control to the map, assigning the baseMaps for the different layers.
+  L.control.layers(baseMaps, {}).addTo(myMap);
+  
+}
+
+// Function that loads the data from the URL
+function loadData() {
+
+}
+
+// Function that initialises the Map and load the data from the URL
+function init() {
+  createMap();
+  loadData();
+}
+
+init();
+
+
+
+
+
+
+
+/*
 // Store the API query variables.
 // For docs, refer to https://dev.socrata.com/docs/queries/where.html.
 // And, refer to https://dev.socrata.com/foundry/data.cityofnewyork.us/erm2-nwe9.
@@ -46,3 +87,5 @@ d3.json(url).then(function(response) {
   myMap.addLayer(markers);
 
 });
+
+*/
