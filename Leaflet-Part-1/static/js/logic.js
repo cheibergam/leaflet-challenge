@@ -1,5 +1,3 @@
-const URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
-
 var myMap;
 
 // Function that creates the Map and all the required Tile Layers
@@ -66,11 +64,11 @@ function getRadius(magnitude) {
   return (20000 * magnitude);
 }
 
-// Function that loads the data from the URL
+// Function that loads the data from the URL, adding the circles and markers popup.
 function loadData() {
-  
+  const EARTHQUAKE_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
   // Get the data with d3.
-  d3.json(URL).then(function(data) {
+  d3.json(EARTHQUAKE_URL).then(function(data) {
     
     // Processing each row from the data loaded from the URL
     for (var i=0; i<data.features.length; i++) {
@@ -89,10 +87,23 @@ function loadData() {
   });
 }
 
+// Function that loads the Tectonic data from the given URL, adding to the Map.
+function loadTectonic() {
+  const TECTONIC_URL = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json";
+
+  d3.json(TECTONIC_URL).then(function(data){
+    L.geoJson(data, {
+      color: "#180070",
+      weight: 2
+    }).addTo(myMap)
+  });
+}
+
 // Function that initialises the Map and load the data from the URL
 function init() {
   createMap();
   loadData();
+  loadTectonic();
 }
 
 init();
