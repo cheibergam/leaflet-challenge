@@ -1,5 +1,7 @@
 const URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
+var myMap;
+
 // Function that creates the Map and all the required Tile Layers
 function createMap() {
 
@@ -13,9 +15,9 @@ function createMap() {
   });
 
   // Creating the Map object
-  var myMap = L.map("map", {
+  myMap = L.map("map", {
     center: [40.7, -73.95],
-    zoom: 11,
+    zoom: 4,
     layers: [streetMap]
   });
 
@@ -28,11 +30,63 @@ function createMap() {
   // Adding the Layer Control to the map, assigning the baseMaps for the different layers.
   L.control.layers(baseMaps, {}).addTo(myMap);
   
+  
+  // Set up the legend.
+  var legend = L.control({ position: "bottomright" });
+  legend.onAdd = function() {
+    var div = L.DomUtil.create("div", "info legend");
+
+    // Adding the Groups
+    div.innerHTML = '<center><b>Depth</b></center><hr>' + 
+                    '<i style="background:#00ff15"></i>' + '-10 &ndash; 10<br><br>' + 
+                    '<i style="background:#b3e85d"></i>' + '10 &ndash; 30<br><br>' + 
+                    '<i style="background:#faf737"></i>' + '30 &ndash; 50<br><br>' + 
+                    '<i style="background:#cc9600"></i>' + '50 &ndash; 70<br><br>' + 
+                    '<i style="background:#ff6726"></i>' + '70 &ndash; 90<br><br>' + 
+                    '<i style="background:#ff0000"></i>' + '90+<br><br>';
+
+    return div;
+  };
+  // Adding the legend to the map
+  legend.addTo(myMap);
+}
+
+// Identifying the color based on the Depth group/class
+function getColor(depth) {
+  return depth > 90 ? '#ff0000' :
+         depth > 70 ? '#ff6726' :
+         depth > 50 ? '#cc9600' :
+         depth > 30 ? '#faf737' :
+         depth > 10 ? '#b3e85d' :
+                      '#00ff15' ;
+}
+
+// Calculating the Radius based on the Magnitude
+function getRadius(magnitude) {
+  return (20000 * magnitude);
 }
 
 // Function that loads the data from the URL
 function loadData() {
+  
+  // Get the data with d3.
+  d3.json(URL).then(function(data) {
+    
+    // Processing each row from the data loaded from the URL
+    for (var i=0; i<data.features.length; i++) {
+      // Getting the coordinates
+      var coordinates = [data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]];
 
+      // Adding the circle to the map. Color Range as per Depth, and Radius as per Magnitude
+      L.circle(coordinates, {
+        fillOpacity: 0.8,
+        color: '#787878',
+        weight: 1,
+        fillColor: getColor(data.features[i].geometry.coordinates[2]),
+        radius: getRadius(data.features[i].properties.mag)
+      }).bindPopup(`<h3>${data.features[i].properties.place}</h3><hr><b>Magnitute:</b> ${data.features[i].properties.mag}<br> <b>Depth:</b> ${data.features[i].geometry.coordinates[2]}<hr><b>Date:</b> ${new Date(data.features[i].properties.time)}`).addTo(myMap);
+    }
+  });
 }
 
 // Function that initialises the Map and load the data from the URL
@@ -42,50 +96,3 @@ function init() {
 }
 
 init();
-
-
-
-
-
-
-
-/*
-// Store the API query variables.
-// For docs, refer to https://dev.socrata.com/docs/queries/where.html.
-// And, refer to https://dev.socrata.com/foundry/data.cityofnewyork.us/erm2-nwe9.
-var baseURL = "https://data.cityofnewyork.us/resource/fhrw-4uyv.json?";
-var date = "$where=created_date between'2016-01-01T00:00:00' and '2017-01-01T00:00:00'";
-var complaint = "&complaint_type=Rodent";
-var limit = "&$limit=10000";
-
-// Assemble the API query URL.
-var url = baseURL + date + complaint + limit;
-
-// Get the data with d3.
-d3.json(url).then(function(response) {
-
-  // Create a new marker cluster group.
-  var markers = L.markerClusterGroup();
-
-  // Loop through the data.
-  for (var i = 0; i < response.length; i++) {
-
-    // Set the data location property to a variable.
-    var location = response[i].location;
-
-    // Check for the location property.
-    if (location) {
-
-      // Add a new marker to the cluster group, and bind a popup.
-      markers.addLayer(L.marker([location.coordinates[1], location.coordinates[0]])
-        .bindPopup(response[i].descriptor));
-    }
-
-  }
-
-  // Add our marker cluster layer to the map.
-  myMap.addLayer(markers);
-
-});
-
-*/
